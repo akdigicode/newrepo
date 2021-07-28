@@ -1,0 +1,49 @@
+version: "3.7"
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prom_data:/prometheus
+
+    networks:
+      elastic:
+        ipv4_address: 101.5.0.9
+        aliases:
+          - prom
+
+  
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
+    volumes:
+      - ./grafana:/etc/grafana/provisioning/datasources
+    mem_limit: 10m
+    networks:
+      elastic:
+        ipv4_address: 101.5.0.10
+        aliases:
+          - graf
+
+networks:
+  elastic:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 101.5.0.1/28
+          gateway: 101.5.0.1
+
+volumes:
+  prom_data:
